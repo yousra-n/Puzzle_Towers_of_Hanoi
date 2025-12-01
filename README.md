@@ -1,7 +1,7 @@
 # Tours de Hanoi – Comparaison Récursif vs Itératif
 
 ![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![Platform](https://img.shields.io/badge/platform-Windows)
 
 Projet simple comparer **deux implémentations** de l’algorithme classique des **Tours de Hanoi** :
 
