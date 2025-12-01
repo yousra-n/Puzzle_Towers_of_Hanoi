@@ -1,8 +1,6 @@
 # Tours de Hanoi – Comparaison Récursif vs Itératif
 
-![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
-
-Projet simple comparer **deux implémentations** de l’algorithme classique des **Tours de Hanoi** :
+Projet simple comparer **deux implémentations** de l’algorithme classique des **Tours de Hanoi** en c++:
 
 - Version récursive
 - Version itérative
@@ -17,5 +15,5 @@ La version itérative accepte facilement **30 disques**, alors que la récursive
 
 ## Compilation
 
-# Windows (MinGW ou MSVC)
+# Windows (MinGW)
 g++ -std=c++17 -O2 hanoi.cpp -o hanoi.exe
