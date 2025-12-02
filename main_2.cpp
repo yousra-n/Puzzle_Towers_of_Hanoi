@@ -2,143 +2,164 @@
 #include <stack>
 #include <chrono>
 #include <vector>
-#include <csignal>  // Pour détecter les segfaults
+#include <fstream>
 using namespace std;
 using namespace std::chrono;
 
-// implementation de la vertion recursive des tours de hanoi
+// implementation de l'algorithme recursive
 void hanoiRecursive(int n, char from, char to, char aux) {
     if (n == 0) return;
     hanoiRecursive(n - 1, from, aux, to);
     hanoiRecursive(n - 1, aux, to, from);
 }
 
-// implementation de la vertion iterative des tours de hanoi iterative avec pile simulée
-void hanoiIterative(int n, char from, char to, char aux)
-{
-    // Rods indices : we map (from, aux, to) → (0,1,2)
-    // A, B, C are just chars but not needed here
+// implementation de l'algorithme itterative
+void hanoiIterative(int n, char from, char to, char aux) {
     vector<stack<int>> stacks(3);
-
     int src = 0, help = 1, dest = 2;
 
-    // On pousse les disques dans la tige source
-    for (int i = n; i > 0; i--)
-        stacks[src].push(i);
+    for (int i = n; i > 0; i--) stacks[src].push(i);
 
     int totalMoves = (1 << n) - 1;
+    if (n % 2 == 0) swap(help, dest);
 
-    // Si n est pair, on inverse auxiliaire et destination
-    if (n % 2 == 0)
-        swap(help, dest);
-
-    // Boucle principale
-    for (int i = 1; i <= totalMoves; i++)
-    {
+    for (int i = 1; i <= totalMoves; i++) {
         int a, b;
+        if (i % 3 == 1)      { a = src;  b = dest; }
+        else if (i % 3 == 2) { a = src;  b = help; }
+        else                 { a = help; b = dest; }
 
-        if (i % 3 == 1) { a = src; b = dest; }
-        else if (i % 3 == 2) { a = src; b = help; }
-        else { a = help; b = dest; }
-
-        // simulate moveDisk(a,b)
-        if (stacks[b].empty() || (!stacks[a].empty() && stacks[a].top() < stacks[b].top()))
-        {
-            // push/pop normally
+        if (stacks[b].empty() || (!stacks[a].empty() && stacks[a].top() < stacks[b].top())) {
             stacks[b].push(stacks[a].top());
             stacks[a].pop();
-        }
-        else
-        {
-            // inverse move
+        } else {
             stacks[a].push(stacks[b].top());
             stacks[b].pop();
         }
     }
 }
 
-// Fonction pour tester la version recursive et attraper les erreurs
-bool testRecursive(int n) {
+// creation des fichiers csv
+ofstream csvRecursive("hanoi_recursive.csv");
+ofstream csvIterative("hanoi_iterative.csv");
+ofstream csvResultats("hanoi_resultats.csv");
+
+// initialisation
+void initCSV() {
+    csvRecursive << "n,temps_microsecondes\n";
+    csvIterative << "n,temps_microsecondes\n";
+    csvResultats << "n,recursive_micros,iterative_micros\n";
+}
+
+// ecriture sur les fichiers recursive et iterative
+void ecrireCSV(ofstream& file, int n, long long temps) {
+    file << n << "," << temps << "\n";
+    file.flush();
+}
+
+// ecriture sur le fichier resultats 
+void ecrireResultat(int n, long long tempsRec, long long tempsIter) {
+    csvResultats << n << ";" << tempsRec << ";" << tempsIter << "\n";
+    csvResultats.flush();
+}
+
+// fonction pour teste et attraper les erreurs pour la fonction recursive
+long long testRecursive(int n) {
     try {
         auto start = high_resolution_clock::now();
         hanoiRecursive(n, 'A', 'C', 'B');
         auto end = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(end - start).count();
-        cout << "  Recursive n = " << n << " : " << duration << " microseconde\n";
-        return true;
-    }
-    catch (const std::exception& e) {
-        cout << "  Recursive n = " << n << " : CRASHED (" << e.what() << ")\n";
-        return false;
+        long long duration = duration_cast<microseconds>(end - start).count();
+        ecrireCSV(csvRecursive, n, duration);
+        return duration;
     }
     catch (...) {
-        cout << "  Recursive n = " << n << " : CRASHED (stack overflow)\n";
-        return false;
+        ecrireCSV(csvRecursive, n, 0);
+        return 0;
     }
 }
 
-// Fonction pour tester la version iterative et attraper les erreurs
-bool testIterative(int n) {
+// fonction pour teste et attraper les erreurs pour la fonction iterative
+long long testIterative(int n) {
     try {
         auto start = high_resolution_clock::now();
         hanoiIterative(n, 'A', 'C', 'B');
         auto end = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(end - start).count();
-        cout << "  Iterative n = " << n << " : " << duration << " microseconde\n";
-        return true;
-    }
-    catch (const std::exception& e) {
-        cout << "  Iterative n = " << n << " : CRASHED (" << e.what() << ")\n";
-        return false;
+        long long duration = duration_cast<microseconds>(end - start).count();
+        //cout << "  Iterative n = " << n << " : " << duration << " microseconde\n";
+        ecrireCSV(csvIterative, n, duration);
+        return duration;
     }
     catch (...) {
-        cout << "  Iterative n = " << n << " : CRASHED\n";
-        return false;
+        //cout << "  Iterative n = " << n << " : CRASHED\n";
+        ecrireCSV(csvIterative, n, 0);
+        return 0;
     }
 }
 
 int main() {
-    cout << "=== Tour de Hanoi ===\n";
-    cout << "Augmentation progressive de n...\n\n";
+    cout << "=== Tours de Hanoi - Comparaison Recursive vs Iterative ===\n\n";
+    initCSV();
 
     int n = 1;
     int maxRecursive = 0;
     int maxIterative = 0;
 
-    
+    cout << fixed;
+
     while (true) {
-        cout << "Test avec n = " << n << "\n";
+        cout << "\n--- Test n = " << n << " ---\n";
 
-        bool recOk = testRecursive(n);
-        bool iterOk = testIterative(n);
+        long long tempsRec = testRecursive(n);
+        long long tempsIter = testIterative(n);
 
-        if (recOk) maxRecursive = n;
-        if (iterOk) maxIterative = n;
+        // remplirer le fichier resultat
+        ecrireResultat(n, tempsRec, tempsIter);
 
-        //si les deux crash on arrete
-        if (!recOk && !iterOk) {
-            cout << "\n=== RESULTATS FINAUX ===\n";
-            cout << "Version recursive  : supporte jusqu'à n = " << maxRecursive << "\n";
-            cout << "Version iterative  : supporte jusqu'à n = " << maxIterative << "\n";
-            if (maxRecursive > maxIterative) { 
-                // si la vertion recursive a crache avent la vertion iterative
-                cout << "La vertion recursive a crash\n";
-            } else { 
-                // inverse on la vertion iterative crash et pas la recursive
-                cout << "La vertion iterative a crash\n";
-            }
+        if (tempsRec > 0) maxRecursive = n;
+        if (tempsIter > 0) maxIterative = n;
+
+        cout << "Recursive  : ";
+        if (tempsRec > 0) cout << tempsRec << " microseconde\n";
+        else cout << "CRASH (stack overflow)\n";
+
+        cout << "Iterative  : ";
+        if (tempsIter > 0) cout << tempsIter << " microseconde\n";
+        else cout << "CRASH\n";
+
+        //  on met une limite
+        if (n > 45) {
+            cout << "\nLimite atteinte.\n";
             break;
         }
 
-        n++;
-        
-        // en securiter 
-        if (n > 50) {
-            cout << "Limite de sécurité atteinte.\n";
+        // si la vertion recursive a crash depuis un moment on arrete (on ajoute 5 iteration de plus)
+        if (maxRecursive > 0 && n > maxRecursive + 5) {
+            cout << "\nLa version recursive a crash depuis n=" << maxRecursive << " on arrete les tests.\n";
             break;
         }
+
+        // si la vertion iterative a crash depuis un moment on arrete (on ajoute 5 iteration de plus)
+        if (maxIterative > 0 && n > maxIterative + 5) {
+            cout << "\nLa version iterative a crash depuis n=" << maxIterative << " on arrete les tests.\n";
+            break;
+        }
+
+        n++;  // on augmente le n 
     }
 
-    cout << "\nProgramme terminé.\n";
+    // un resumer des resultats finaux obtenu
+    cout << "\n" << string(50, '=') << "\n";
+    cout << "           RESULTATS FINAUX\n";
+    cout << string(50, '=') << "\n";
+    cout << "Recursive supporte jusqu'à n = " << maxRecursive << "\n";
+    cout << "Iterative supporte jusqu'à n = " << maxIterative << "\n";
+    cout << string(50, '=') << "\n\n";
+
+    // fermeture des fichiers
+    csvRecursive.close();
+    csvIterative.close();
+    csvResultats.close();
+    system("pause");
     return 0;
 }
