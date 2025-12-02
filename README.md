@@ -11,8 +11,6 @@ Le programme augmente progressivement le nombre de disques `n` jusqu’à ce que
 - Voir concrètement la **limite de la pile d’appel** (stack overflow) en récursif
 - Comparer les performances réelles des deux approches
 
-La version itérative accepte facilement **30 disques**, alors que la récursive s’effondre vers **40** selon la taille du stack du système.
-
 ## Compilation
 
 # Windows (MinGW)
