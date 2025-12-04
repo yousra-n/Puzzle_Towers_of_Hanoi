@@ -1,155 +1,175 @@
-// hanoi_final.cpp
 #include <iostream>
+#include <stack>
 #include <chrono>
 #include <vector>
-#include <iomanip>
-#include <cstdint>
+#include <fstream> 
 using namespace std;
 using namespace std::chrono;
 
-long long moves = 0;
 
-// ============================================================================
-// RÉCURSIF
-// ============================================================================
-void hanoi_rec(int n, char a = 'A', char c = 'C', char b = 'B') {
-    if (n == 1) { moves++; return; }
-    hanoi_rec(n - 1, a, b, c);
-    moves++;
-    hanoi_rec(n - 1, b, c, a);
-}
+// implementation du code iterative 
+struct Frame {
+    int n;
+    char from, to, aux;
+    int state;
+};
 
-// ============================================================================
-// ITÉRATIF — VRAI ALGORITHME DE HANOI
-// Compte les mouvements sans afficher les tours.
-// ============================================================================
-long long hanoi_iter(int n) {
-    long long total = (1LL << n) - 1;
-    long long count = 0;
+void hanoiIterative(int n, char from, char to, char aux) {
+    stack<Frame> st;
+    st.push({n, from, to, aux, 0});
 
-    char A = 'A', B = 'B', C = 'C';
-
-    // Pour n pair, on inverse B et C
-    if (n % 2 == 0) swap(B, C);
-
-    for (long long i = 1; i <= total; i++) {
-        // Mouvement déterministe
-        if (i % 3 == 1) count++;
-        else if (i % 3 == 2) count++;
-        else count++;
-    }
-    return count;
-}
-
-// ============================================================================
-// GRAPHIQUE ASCII
-// ============================================================================
-void dessiner_graphique(const vector<double>& temps, int max_n) {
-    cout << "\n\n=== GRAPHIQUE ASCII : Temps recursif (ms) ===\n";
-    const int H = 20;
-    double max_t = 1.0;
-
-    for (int i = 0; i < max_n && i < (int)temps.size(); ++i)
-        if (temps[i] > max_t) max_t = temps[i];
-
-    for (int y = H; y >= 0; --y) {
-        if (y == H) cout << setw(8) << fixed << setprecision(0) << max_t << "ms |";
-        else if (y == 0) cout << "       0ms +";
-        else cout << "         |";
-
-        for (int x = 1; x <= max_n; ++x) {
-            if (x > (int)temps.size() || temps[x-1] <= 0) { cout << " "; continue; }
-            int h = (int)(temps[x-1] * H / max_t);
-            if (h > H) h = H;
-
-            if (y == h) cout << "*";
-            else if (y < h) cout << "|";
-            else cout << " ";
+    while (!st.empty()) {
+        Frame &f = st.top();
+        if (f.n == 1) {
+            st.pop();
+            continue;
         }
-        cout << "\n";
-    }
-
-    cout << "           ";
-    for (int i = 1; i <= max_n; ++i) cout << (i % 5 == 0 ? "+" : "-");
-    cout << "> n\n           ";
-
-    for (int i = 1; i <= max_n; i += 5) cout << setw(5) << i << " ";
-    cout << "\n\n";
-}
-
-// ============================================================================
-// MAIN
-// ============================================================================
-int main() {
-    cout << "TOUR DE HANOI - Comparaison recursif vs iteratif\n\n";
-
-    cout << left
-         << setw(6)  << "n"
-         << setw(20) << "Mouvements"
-         << setw(25) << "Temps recursif (ms)"
-         << setw(25) << "Temps iteratif (ms)"
-         << endl;
-
-    cout << string(80, '-') << endl;
-
-    vector<double> temps_rec;
-    int crash_n = -1;
-
-    for (int n = 1; n <= 35; ++n) {
-        long long nb_moves = (1LL << n) - 1;
-
-        // ------------------------- ITÉRATIF -------------------------
-        auto t1 = high_resolution_clock::now();
-        long long m_it = hanoi_iter(n);
-        auto t2 = high_resolution_clock::now();
-        double temps_it = duration<double, milli>(t2 - t1).count();
-
-        // ------------------------- RÉCURSIF -------------------------
-        moves = 0;
-        double temps_r = 0.0;
-        bool crash = false;
-
-        try {
-            auto start = high_resolution_clock::now();
-            hanoi_rec(n);
-            auto end = high_resolution_clock::now();
-
-            temps_r = duration<double, milli>(end - start).count();
-
-            if (moves != nb_moves) crash = true;
-            temps_rec.push_back(temps_r);
+        if (f.state == 0) {
+            f.state = 1;
+            st.push({f.n - 1, f.from, f.aux, f.to, 0});
         }
-        catch (...) {
-            crash = true;
-            temps_rec.push_back(0.0);
-            if (crash_n == -1) crash_n = n;
+        else if (f.state == 1) {
+            f.state = 2;
         }
-
-        // ------------------------- AFFICHAGE -------------------------
-        cout << left
-             << setw(6)  << n
-             << setw(20) << nb_moves;
-
-        if (crash)
-            cout << setw(25) << "STACK OVERFLOW";
         else {
-            std::ostringstream oss;
-            oss << fixed << setprecision(3) << temps_r;
-            cout << setw(25) << oss.str();
+            st.pop();
+            st.push({f.n - 1, f.aux, f.to, f.from, 0});
+        }
+    }
+}
+
+
+// implementation du code recursive
+void hanoiRecursive(int n, char from, char to, char aux) {
+    if (n == 0) return;
+    hanoiRecursive(n - 1, from, aux, to);
+    hanoiRecursive(n - 1, aux, to, from);
+}
+
+// creation des ficher csv
+ofstream csvRecursive("hanoi_recursive.csv");
+ofstream csvIterative("hanoi_iterative.csv");
+ofstream csvResultats("hanoi_resultats.csv");
+
+// inisialisation des fichiers csv
+void initCSV() {
+    csvRecursive << "n,temps_microsecondes\n"; //pour les resultat du code recursive
+    csvIterative << "n,temps_microsecondes\n"; //pour les resultat du code iterative
+    csvResultats << "n;recursive_microsecondes;iterative_microsecondes\n"; //pour les resultat du code recursive et iterative 
+}
+
+// fonction ecriture sur les fichers
+void ecrireCSV(ofstream& file, int n, long long temps) {
+    file << n << "," << temps << "\n";
+    file.flush();
+}
+
+void ecrireResultat(int n, long long tempsRec, long long tempsIter) {
+    csvResultats << n << ";" << tempsRec << ";" << tempsIter << "\n";
+    csvResultats.flush();
+}
+
+// on teste la fonction recursive 
+long long testRecursive(int n) {
+    try {
+        auto start = high_resolution_clock::now();
+        hanoiRecursive(n, 'A', 'C', 'B');
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start).count();
+        ecrireCSV(csvRecursive, n, duration);
+        return duration;
+    }
+    catch (...) {
+        ecrireCSV(csvRecursive, n, 0);
+        return 0;
+    }
+}
+
+// on teste la fonction iterative 
+long long testIterative(int n) {
+    try {
+        auto start = high_resolution_clock::now();
+        hanoiIterative(n, 'A', 'C', 'B');
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start).count();
+        ecrireCSV(csvIterative, n, duration);
+        return duration;
+    }
+    catch (...) {
+        ecrireCSV(csvIterative, n, 0);
+        return 0;
+    }
+}
+
+// main
+int main() {
+
+    cout << "=== Tours de Hanoi - Comparaison Recursive vs Iterative ===\n\n";
+    initCSV();
+
+    int n = 1;
+    int maxRecursive = 0;
+    int maxIterative = 0;
+
+    cout << fixed ;
+
+    while (true) {
+        cout << "\n--- Test n = " << n << " ---\n";
+
+        long long tempsRec = testRecursive(n);
+        long long tempsIter = testIterative(n);
+
+        ecrireResultat(n, tempsRec, tempsIter);
+
+        if (tempsRec > 0) maxRecursive = n;
+        if (tempsIter > 0) maxIterative = n;
+
+        cout << "Recursive  : ";
+        if (tempsRec > 0) cout << tempsRec << " microseconde\n";
+        else cout << "CRASH (stack overflow)\n";
+
+        cout << "Iterative  : ";
+        if (tempsIter > 0) cout << tempsIter << " microseconde";
+        else cout << "CRASH";
+        cout << endl;
+
+        // Limite pour pas faire des itteration indefiniment
+        if (n >= 40) {
+            cout << "\nLimite de test atteinte.\n";
+            break;
         }
 
-        std::ostringstream oss2;
-        oss2 << fixed << setprecision(3) << temps_it;
-        cout << setw(25) << oss2.str();
+        // stop si recursive a crash depuis longtemps
+        if (maxRecursive > 0 && n > maxRecursive + 10) {
+            cout << "\nVersion recursive bloquee depuis n=" << maxRecursive << ", on arrete.\n";
+            break;
+        }
+        // stop si itterative a crash depuis longtemps
+        if (maxIterative > 0 && n > maxIterative + 5) {
+            cout << "\nLa version iterative a crash depuis n=" << maxIterative << " on arrete les tests.\n";
+            break;
+        }
 
-        if (crash && crash_n == n) cout << " <- debordement pile";
-
-        cout << endl;
+        n++; //incremantaion de n 
     }
 
-    if (crash_n != -1)
-        cout << "\nRecursion impossible a partir de n = " << crash_n << " (stack overflow)\n";
+    // resumer des resultats obtenu
+    cout << "\n" << string(60, '=') << "\n";
+    cout << "           RESULTATS FINAUX\n";
+    cout << string(60, '=') << "\n";
+    cout << "Recursive  : supporte jusqu'a n = " << maxRecursive << "\n";
+    cout << "Iterative  : supporte jusqu'a n = " << maxIterative << "\n";
+    cout << string(60, '=') << "\n\n";
+
+    //fermer les fichiers
+    csvRecursive.close();
+    csvIterative.close();
+    csvResultats.close();
+
+    return 0;
+}
 
     dessiner_graphique(temps_rec, crash_n > 0 ? crash_n - 1 : 35);
     return 0;
 }
+
