@@ -12,9 +12,9 @@ Cette GUI permet de comprendre visuellement comment fonctionne l'algorithme réc
 -  **Contrôle de vitesse** : Ajuster la vitesse d'animation (100ms à 2000ms)
 -  **Nombre de disques variable** : Tester avec 1 à 8 disques
 -  **Statistiques en direct** : 
-  - Nombre de mouvements effectués
-  - Total de mouvements requis (2ⁿ - 1)
-  - Progression en pourcentage
+       - Nombre de mouvements effectués
+       - Total de mouvements requis (2ⁿ - 1)
+       - Progression en pourcentage
 -  **Contrôles interactifs** : Démarrer, Pause, Réinitialiser
 -  **Interface responsive** : Fonctionne sur tous les navigateurs modernes
 
