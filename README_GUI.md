@@ -23,9 +23,9 @@ Cette GUI permet de comprendre visuellement comment fonctionne l'algorithme réc
 
 1. **Choisir le nombre de disques** : Utilisez le slider "Disques" (1-8)
 2. **Ajuster la vitesse** : Utilisez le slider "Vitesse" (100ms-2000ms)
-3. **Lancer l'animation** : Cliquez sur "▶ Démarrer"
-4. **Mettre en pause** : Cliquez sur "⏸ Pause"
-5. **Réinitialiser** : Cliquez sur "↻ Réinitialiser"
+3. **Lancer l'animation** : Cliquez sur "Démarrer"
+4. **Mettre en pause** : Cliquez sur "Pause"
+5. **Réinitialiser** : Cliquez sur "Réinitialiser"
 
 ##  Technologies utilisées
 
