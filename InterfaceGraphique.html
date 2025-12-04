@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tours de Hanoï - Interface Graphique</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-value.blue { color: #3498db; }
+        .stat-value.green { color: #2ecc71; }
+        .stat-value.purple { color: #9b59b6; }
+        .stat-value.orange { color: #e67e22; }
+
+        .towers-container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .towers {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 350px;
+        }
+
+        .tower {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .tower-label {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .tower-body {
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            width: 200px;
+            height: 300px;
+        }
+
+        .pole {
+            position: absolute;
+            bottom: 10px;
+            width: 8px;
+            height: 280px;
+            background: #34495e;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .base {
+            width: 200px;
+            height: 10px;
+            background: #2c3e50;
+            border-radius: 5px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .disks {
+            position: absolute;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .disk {
+            height: 25px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border: 2px solid rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .slider-group {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .slider-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-control label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        input[type="range"] {
+            width: 150px;
+        }
+
+        .slider-value {
+            font-weight: bold;
+            color: #3498db;
+            min-width: 60px;
+        }
+
+        .note {
+            margin-top: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .disk-color-1 { background: #e74c3c; }
+        .disk-color-2 { background: #e67e22; }
+        .disk-color-3 { background: #f39c12; }
+        .disk-color-4 { background: #2ecc71; }
+        .disk-color-5 { background: #3498db; }
+        .disk-color-6 { background: #9b59b6; }
+        .disk-color-7 { background: #e91e63; }
+        .disk-color-8 { background: #00bcd4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interface Graphique - Tours de Hanoï</h1>
+            <p class="subtitle">Visualisation interactive de l'algorithme</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-label">Nombre de disques</div>
+                <div class="stat-value blue" id="diskCount">3</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Mouvements effectués</div>
+                <div class="stat-value green" id="moveCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Total requis</div>
+                <div class="stat-value purple" id="totalMoves">7</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progression</div>
+                <div class="stat-value orange" id="progress">0%</div>
+            </div>
+        </div>
+
+        <div class="towers-container">
+            <div class="towers">
+                <div class="tower">
+                    <div class="tower-label">Tour A</div>
+                    <div class="tower-body">
+                        <div class="pole"></div>
+                        <div class="base"></div>
+                        <div class="disks" id="tower-0"></div>
+                    </div>
+                </div>
+                <div class="tower">
+                    <div class="tower-label">Tour B</div>
+                    <div class="tower-body">
+                        <div class="pole"></div>
+                        <div class="base"></div>
+                        <div class="disks" id="tower-1"></div>
+                    </div>
+                </div>
+                <div class="tower">
+                    <div class="tower-label">Tour C</div>
+                    <div class="tower-body">
+                        <div class="pole"></div>
+                        <div class="base"></div>
+                        <div class="disks" id="tower-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="button-group">
+                <button class="btn-primary" id="playBtn" onclick="togglePlay()">
+                    ▶ Démarrer
+                </button>
+                <button class="btn-secondary" onclick="reset()">
+                    ↻ Réinitialiser
+                </button>
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-control">
+                    <label>⚙ Disques:</label>
+                    <input type="range" min="1" max="8" value="3" id="diskSlider" onchange="updateDisks()">
+                    <span class="slider-value" id="diskValue">3</span>
+                </div>
+                <div class="slider-control">
+                    <label>⏱ Vitesse:</label>
+                    <input type="range" min="100" max="2000" step="100" value="500" id="speedSlider" onchange="updateSpeed()">
+                    <span class="slider-value" id="speedValue">500ms</span>
+                </div>
+            </div>
+
+            <div class="note">
+                <p>Note: Cette interface graphique est optionnelle et développée en HTML/JavaScript pour la démonstration.</p>
+                <p>L'implémentation principale reste en C++.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let n = 3;
+        let towers = [[], [], []];
+        let moves = [];
+        let currentMove = 0;
+        let isPlaying = false;
+        let speed = 500;
+        let animationTimer = null;
+
+        function init() {
+            reset();
+        }
+
+        function reset() {
+            isPlaying = false;
+            clearTimeout(animationTimer);
+            
+            towers = [[], [], []];
+            for (let i = n; i >= 1; i--) {
+                towers[0].push(i);
+            }
+            
+            moves = [];
+            generateMoves(n, 0, 2, 1);
+            currentMove = 0;
+            
+            updateDisplay();
+            updateStats();
+            
+            document.getElementById('playBtn').innerHTML = '▶ Démarrer';
+        }
+
+        function generateMoves(disks, from, to, aux) {
+            if (disks === 1) {
+                moves.push({ from, to });
+                return;
+            }
+            generateMoves(disks - 1, from, aux, to);
+            moves.push({ from, to });
+            generateMoves(disks - 1, aux, to, from);
+        }
+
+        function togglePlay() {
+            if (currentMove >= moves.length) {
+                reset();
+                return;
+            }
+            
+            isPlaying = !isPlaying;
+            document.getElementById('playBtn').innerHTML = isPlaying ? '⏸ Pause' : '▶ Reprendre';
+            
+            if (isPlaying) {
+                playNext();
+            } else {
+                clearTimeout(animationTimer);
+            }
+        }
+
+        function playNext() {
+            if (!isPlaying || currentMove >= moves.length) {
+                isPlaying = false;
+                document.getElementById('playBtn').innerHTML = '↻ Recommencer';
+                return;
+            }
+            
+            const move = moves[currentMove];
+            const disk = towers[move.from].pop();
+            towers[move.to].push(disk);
+            
+            currentMove++;
+            updateDisplay();
+            updateStats();
+            
+            animationTimer = setTimeout(playNext, speed);
+        }
+
+        function updateDisplay() {
+            for (let i = 0; i < 3; i++) {
+                const towerEl = document.getElementById(`tower-${i}`);
+                towerEl.innerHTML = '';
+                
+                towers[i].forEach(disk => {
+                    const diskEl = document.createElement('div');
+                    diskEl.className = `disk disk-color-${disk}`;
+                    const diskWidth = 40 + (disk - 1) * 20;
+                    diskEl.style.width = diskWidth + 'px';
+                    diskEl.textContent = disk;
+                    towerEl.appendChild(diskEl);
+                });
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('diskCount').textContent = n;
+            document.getElementById('moveCount').textContent = currentMove;
+            document.getElementById('totalMoves').textContent = Math.pow(2, n) - 1;
+            const progressPercent = moves.length > 0 ? Math.round((currentMove / moves.length) * 100) : 0;
+            document.getElementById('progress').textContent = progressPercent + '%';
+        }
+
+        function updateDisks() {
+            n = parseInt(document.getElementById('diskSlider').value);
+            document.getElementById('diskValue').textContent = n;
+            document.getElementById('diskSlider').disabled = isPlaying;
+            reset();
+        }
+
+        function updateSpeed() {
+            speed = parseInt(document.getElementById('speedSlider').value);
+            document.getElementById('speedValue').textContent = speed + 'ms';
+        }
+
+        init();
+    </script>
+</body>
+</html>
